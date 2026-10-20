@@ -1,0 +1,27 @@
+name: Compilar sketch
+on:
+  push:
+    paths:
+      - 'sketch/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - name: Compilar
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+          arduino-cli compile --fqbn arduino:avr:uno --output-dir hex sketch
+      - name: Salvar hex no repositório
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          cp hex/sketch.ino.hex programa.hex
+          git add programa.hex
+          git commit -m "Atualiza programa.hex" || echo "sem mudanças"
+          git push
